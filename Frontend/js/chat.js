@@ -36,7 +36,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        const res = await fetch("http://localhost:8080/api/message/my", {
+        const res = await fetch("/api/message/my", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -69,7 +69,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 async function fetchAllUsers(token) {
     try {
-        const res = await fetch("http://localhost:8080/api/auth/users", {
+        const res = await fetch("/api/auth/users", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
