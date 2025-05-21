@@ -26,7 +26,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/message", require("./routes/chatRouter"));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "auth.html"));
+  res.sendFile(path.join(__dirname, "Frontend", "auth.html"));
 });
 
 
