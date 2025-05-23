@@ -29,6 +29,7 @@ module.exports = (io) => {
           to: "public",
           text,
           timestamp,
+          read: false,
         });
       } else {
         const targetSocketId = connectedUsers.get(to);
@@ -39,6 +40,7 @@ module.exports = (io) => {
             to,
             text,
             timestamp,
+            read: false,
           });
 
           socket.emit("private message sent", {
@@ -46,6 +48,7 @@ module.exports = (io) => {
             to,
             text,
             timestamp,
+            read: false,
           });
         } else {
           socket.emit("chat error", { message: `User ${to} not found.` });
@@ -81,6 +84,32 @@ module.exports = (io) => {
         }
       }
     });
+
+    // ✅ Read Receipt Handler
+      socket.on("message read", ({ from, timestamp }) => {
+      const to = socket.username;
+      const senderSocketId = connectedUsers.get(from);
+
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("message read", {
+          from: to, // who read it
+          to: from, // original sender
+          timestamp,
+        });
+      }
+    });
+
+    socket.on("check online", ({ user, timestamp }) => {
+      const to = socket.username; // sender
+
+      const isOnline = connectedUsers.has(user);
+      if (isOnline) {
+        const senderSocketId = connectedUsers.get(to);
+        io.to(senderSocketId).emit("user online tick", { to: user, timestamp });
+      }
+    });
+
+
 
     // Disconnect
     socket.on("disconnect", () => {

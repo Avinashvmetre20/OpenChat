@@ -115,6 +115,16 @@ function renderUserList(users) {
             hideBadge(user);
             typingIndicator.textContent = "";
             input.focus();
+
+            // 🔔 Emit message read to sender
+            const lastMessages = chatHistory[user] || [];
+            const last = lastMessages.length > 0 ? lastMessages[lastMessages.length - 1] : null;
+            if (last && last.timestamp) {
+                socket.emit("message read", {
+                    from: user, // sender of the messages
+                    timestamp: last.timestamp
+                });
+            }
         });
 
         userList.appendChild(userDiv);
@@ -157,28 +167,63 @@ function setActiveUser(user) {
 // Load chat history into the message area
 function loadMessages(user) {
     messages.innerHTML = "";
-    (chatHistory[user] || []).forEach(({ text, type, from,timestamp }) => {
-        addMessage(text, type, from,timestamp);
+    (chatHistory[user] || []).forEach(({ text, type, from, timestamp }) => {
+        addMessage(text, type, from, timestamp);
     });
 }
 
 // Add message to UI
-function addMessage(text, type, from,timestamp) {
-    const messageElement = document.createElement("div");
-    messageElement.className = `message ${type}`;
-    // Format timestamp nicely (e.g. HH:MM or locale string)
-    const timeString = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function addMessage(text, type, from, timestamp, status = "sent") {
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `message ${type}`;
 
-    // Include timestamp in message display
-    if (from === currentUser) {
-        messageElement.innerHTML = `${text} <span class="timestamp">${timeString}</span>`;
-    } else {
-        messageElement.innerHTML = `<strong>${from}:</strong> ${text} <span class="timestamp">${timeString}</span>`;
+    const time = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Status: sent / delivered / read
+    let tickText = "✓";
+    let tickColor = "gray";
+
+    if (status === "delivered") tickText = "✓✓";
+    else if (status === "read") {
+        tickText = "✓✓";
+        tickColor = "#4fc3f7"; // WhatsApp blue
     }
 
-    messages.appendChild(messageElement);
+    msgDiv.innerHTML = `
+        <p>${text}</p>
+        <div class="meta">
+            <span class="timestamp">${time}</span>
+            ${type === "sent" ? `<span class="ticks" data-ts="${timestamp}" style="color:${tickColor}">${tickText}</span>` : ""}
+        </div>
+    `;
+
+    messages.appendChild(msgDiv);
     messages.scrollTop = messages.scrollHeight;
 }
+
+
+function sendMessage() {
+    const text = messageInput.value.trim();
+    if (text === "") return;
+
+    const timestamp = Date.now();
+
+    socket.emit("private message", {
+        from: currentUser,
+        to: selectedUser,
+        text,
+        timestamp,
+    });
+
+    // Add with single tick by default
+    addMessage(text, "sent", currentUser, timestamp, "sent");
+
+    // Ask if recipient is online
+    socket.emit("check online", { user: selectedUser, timestamp });
+    
+    messageInput.value = "";
+}
+
 
 // Show unread badge count for user
 function showBadge(user) {
@@ -230,46 +275,56 @@ input.addEventListener("input", () => {
 });
 
 // Handle receiving public message
-socket.on("chat message", ({ from, to, text,timestamp }) => {
+socket.on("chat message", ({ from, to, text, timestamp }) => {
     const isFromMe = from === currentUser;
     const chatKey = "public";
 
     chatHistory[chatKey] = chatHistory[chatKey] || [];
-    chatHistory[chatKey].push({ text, from, to,timestamp, type: isFromMe ? "sent" : "received" });
+    chatHistory[chatKey].push({ text, from, to, timestamp, type: isFromMe ? "sent" : "received" });
 
     const isCurrentChat = selectedUser === "public";
     if (isCurrentChat) {
-        addMessage(text, isFromMe ? "sent" : "received", from,timestamp);
+        addMessage(text, isFromMe ? "sent" : "received", from, timestamp);
     } else {
         showBadge(chatKey);
     }
 });
 
 // Handle receiving private message
-socket.on("private message", ({ from, to, text,timestamp }) => {
-    const chatKey = from;
-    const isCurrentChat = selectedUser === from;
+socket.on("private message", ({ from, to, text, timestamp }) => {
+    const type = from === currentUser ? "sent" : "received";
 
-    chatHistory[chatKey] = chatHistory[chatKey] || [];
-    chatHistory[chatKey].push({ text, from, to,timestamp, type: "received" });
+    if (!chatHistory[from]) chatHistory[from] = [];
+    chatHistory[from].push({ text, type, from, timestamp });
 
-    if (isCurrentChat) {
-        addMessage(text, "received", from);
-    } else {
-        showBadge(chatKey);
+    // Display message
+    if (selectedUser === from || selectedUser === to) {
+        addMessage(text, type, from, timestamp);
+    }
+    else{
+        showBadge(from);
+        // Optional: show browser notification
+        if (Notification.permission === "granted") {
+            new Notification(`New message from ${from}`, { body: text });
+        }
+    }
+
+    // If user is active in this chat, send read receipt
+    if (type === "received" && selectedUser === from) {
+        socket.emit("message read", { from, timestamp });
     }
 });
 
 // Confirmation message back to sender after sending private message
-socket.on("private message sent", ({ from, to, text,timestamp }) => {
+socket.on("private message sent", ({ from, to, text, timestamp }) => {
     const chatKey = to;
     const isCurrentChat = selectedUser === to;
 
     chatHistory[chatKey] = chatHistory[chatKey] || [];
-    chatHistory[chatKey].push({ text, from, to,timestamp, type: "sent" });
+    chatHistory[chatKey].push({ text, from, to, timestamp, type: "sent" });
 
     if (isCurrentChat) {
-        addMessage(text, "sent", from);
+        addMessage(text, "sent", from,timestamp);
     } else {
         showBadge(chatKey);
     }
@@ -304,6 +359,31 @@ socket.on("stop typing", ({ from, to }) => {
             }
         }
     }
+});
+
+socket.on("user online tick", ({ to, timestamp }) => {
+    const ticks = document.querySelectorAll(".message.sent .ticks");
+
+    ticks.forEach(tick => {
+        const ts = tick.getAttribute("data-ts");
+        if (ts == timestamp) {
+            tick.textContent = "✓✓";
+            tick.style.color = "gray"; // still not read
+        }
+    });
+});
+
+//message read indicator
+socket.on("message read", ({ from, to, timestamp }) => {
+    const ticks = document.querySelectorAll(".message.sent .ticks");
+
+    ticks.forEach(tick => {
+        const ts = tick.getAttribute("data-ts");
+        if (ts <= timestamp) {
+            tick.textContent = "✓✓";
+            tick.style.color = "#4fc3f7"; // blue
+        }
+    });
 });
 
 // When client reconnects to server

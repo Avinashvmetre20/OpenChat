@@ -355,3 +355,24 @@ body {
     color: #999;
     margin-left: 8px;
 }
+
+.last-seen {
+  font-size: 0.75em;
+  color: gray;
+  margin-top: 2px;
+}
+
+.message .meta {
+  font-size: 0.75em;
+  color: gray;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.ticks {
+    margin-left: 6px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
