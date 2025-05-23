@@ -1,4 +1,4 @@
-const socket = io(); 
+const socket = io();
 // Initialize Socket.IO client to connect with the server
 
 // DOM elements
@@ -157,16 +157,25 @@ function setActiveUser(user) {
 // Load chat history into the message area
 function loadMessages(user) {
     messages.innerHTML = "";
-    (chatHistory[user] || []).forEach(({ text, type, from }) => {
-        addMessage(text, type, from);
+    (chatHistory[user] || []).forEach(({ text, type, from,timestamp }) => {
+        addMessage(text, type, from,timestamp);
     });
 }
 
 // Add message to UI
-function addMessage(text, type, from) {
+function addMessage(text, type, from,timestamp) {
     const messageElement = document.createElement("div");
     messageElement.className = `message ${type}`;
-    messageElement.innerHTML = from === currentUser ? text : `<strong>${from}:</strong> ${text}`;
+    // Format timestamp nicely (e.g. HH:MM or locale string)
+    const timeString = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Include timestamp in message display
+    if (from === currentUser) {
+        messageElement.innerHTML = `${text} <span class="timestamp">${timeString}</span>`;
+    } else {
+        messageElement.innerHTML = `<strong>${from}:</strong> ${text} <span class="timestamp">${timeString}</span>`;
+    }
+
     messages.appendChild(messageElement);
     messages.scrollTop = messages.scrollHeight;
 }
@@ -201,7 +210,9 @@ form.addEventListener("submit", (e) => {
 
     const msg = input.value.trim();
     if (msg) {
-        const payload = { to: selectedUser, text: msg };
+        // const payload = { to: selectedUser, text: msg };
+        const timestamp = new Date().toISOString(); // ISO format timestamp
+        const payload = { to: selectedUser, text: msg, timestamp };
         socket.emit("chat message", payload);
         input.value = "";
         typingIndicator.textContent = "";
@@ -219,28 +230,28 @@ input.addEventListener("input", () => {
 });
 
 // Handle receiving public message
-socket.on("chat message", ({ from, to, text }) => {
+socket.on("chat message", ({ from, to, text,timestamp }) => {
     const isFromMe = from === currentUser;
     const chatKey = "public";
 
     chatHistory[chatKey] = chatHistory[chatKey] || [];
-    chatHistory[chatKey].push({ text, from, to, type: isFromMe ? "sent" : "received" });
+    chatHistory[chatKey].push({ text, from, to,timestamp, type: isFromMe ? "sent" : "received" });
 
     const isCurrentChat = selectedUser === "public";
     if (isCurrentChat) {
-        addMessage(text, isFromMe ? "sent" : "received", from);
+        addMessage(text, isFromMe ? "sent" : "received", from,timestamp);
     } else {
         showBadge(chatKey);
     }
 });
 
 // Handle receiving private message
-socket.on("private message", ({ from, to, text }) => {
+socket.on("private message", ({ from, to, text,timestamp }) => {
     const chatKey = from;
     const isCurrentChat = selectedUser === from;
 
     chatHistory[chatKey] = chatHistory[chatKey] || [];
-    chatHistory[chatKey].push({ text, from, to, type: "received" });
+    chatHistory[chatKey].push({ text, from, to,timestamp, type: "received" });
 
     if (isCurrentChat) {
         addMessage(text, "received", from);
@@ -250,12 +261,12 @@ socket.on("private message", ({ from, to, text }) => {
 });
 
 // Confirmation message back to sender after sending private message
-socket.on("private message sent", ({ from, to, text }) => {
+socket.on("private message sent", ({ from, to, text,timestamp }) => {
     const chatKey = to;
     const isCurrentChat = selectedUser === to;
 
     chatHistory[chatKey] = chatHistory[chatKey] || [];
-    chatHistory[chatKey].push({ text, from, to, type: "sent" });
+    chatHistory[chatKey].push({ text, from, to,timestamp, type: "sent" });
 
     if (isCurrentChat) {
         addMessage(text, "sent", from);

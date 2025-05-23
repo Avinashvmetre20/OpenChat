@@ -349,3 +349,9 @@ body {
 .dropdown-menu button:hover {
   background-color: #f2f2f2;
 }
+
+.timestamp {
+    font-size: 0.75em;
+    color: #999;
+    margin-left: 8px;
+}

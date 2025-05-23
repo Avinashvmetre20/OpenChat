@@ -20,7 +20,7 @@ module.exports = (io) => {
         console.warn("Message ignored: username not set.");
         return;
       }
-
+      const timestamp = new Date().toISOString();
       // console.log(`Message from ${from} to ${to}: ${text}`);
 
       if (to === "public") {
@@ -28,6 +28,7 @@ module.exports = (io) => {
           from,
           to: "public",
           text,
+          timestamp,
         });
       } else {
         const targetSocketId = connectedUsers.get(to);
@@ -37,12 +38,14 @@ module.exports = (io) => {
             from,
             to,
             text,
+            timestamp,
           });
 
           socket.emit("private message sent", {
             from,
             to,
             text,
+            timestamp,
           });
         } else {
           socket.emit("chat error", { message: `User ${to} not found.` });
