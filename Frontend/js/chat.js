@@ -36,7 +36,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        const res = await fetch("https://openchat-zvc4.onrender.com/api/message/my", {
+        const res = await fetch("/api/message/my", {
+        // const res = await fetch("http://localhost:8080/api/message/my", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -69,7 +70,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 async function fetchAllUsers(token) {
     try {
-        const res = await fetch("https://openchat-zvc4.onrender.com/api/auth/users", {
+        const res = await fetch("/api/auth/users", {
+        // const res = await fetch("http://localhost:8080/api/auth/users", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

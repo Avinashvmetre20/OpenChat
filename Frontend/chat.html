@@ -43,7 +43,6 @@
         </div>
       </div>
 
-
       <div id="messages" class="chat-body"></div>
       <form id="form" class="chat-footer">
         <input type="text" id="input" autocomplete="on" placeholder="Type a message..." disabled
@@ -55,18 +54,12 @@
     </div>
   </div>
 
-  <!-- Sidebar Toggle Script -->
-  <script>
-
-    function toggleSendButton() {
-      const input = document.getElementById("input");
-      const sendBtn = document.getElementById("sendBtn");
-      sendBtn.disabled = input.value.trim() === "";
-    }
-  </script>
-
+  <!-- Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="./js/chat.js"></script>
+
+  <!-- Modular JavaScript Files -->
+<script src="./js/chat.js"></script>
+
 </body>
 
 </html>

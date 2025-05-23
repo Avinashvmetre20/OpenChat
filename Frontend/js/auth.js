@@ -24,7 +24,8 @@ loginForm.addEventListener("submit", async (e) => {
   const msg = document.getElementById("login-msg");
 
   try {
-    const res = await fetch("https://openchat-zvc4.onrender.com/api/auth/login", {
+    const res = await fetch("/api/auth/login", {
+    // const res = await fetch("http://localhost:8080/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mobile, password }),
@@ -55,7 +56,8 @@ registerForm.addEventListener("submit", async (e) => {
   const msg = document.getElementById("register-msg");
 
   try {
-    const res = await fetch("https://openchat-zvc4.onrender.com/api/auth/register", {
+    const res = await fetch("/api/auth/register", {
+    // const res = await fetch("http://localhost:8080/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, mobile, password }),
