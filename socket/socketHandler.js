@@ -14,41 +14,41 @@ module.exports = (io) => {
     });
 
     // Chat message handler
-socket.on("chat message", ({ to, text }) => {
-  const from = socket.username;
-  if (!from) {
-    console.warn("Message ignored: username not set.");
-    return;
-  }
+    socket.on("chat message", ({ to, text }) => {
+      const from = socket.username;
+      if (!from) {
+        console.warn("Message ignored: username not set.");
+        return;
+      }
 
-  console.log(`Message from ${from} to ${to}: ${text}`);
+      // console.log(`Message from ${from} to ${to}: ${text}`);
 
-  if (to === "public") {
-    io.emit("chat message", {
-      from,
-      to: "public",
-      text,
+      if (to === "public") {
+        io.emit("chat message", {
+          from,
+          to: "public",
+          text,
+        });
+      } else {
+        const targetSocketId = connectedUsers.get(to);
+
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("private message", {
+            from,
+            to,
+            text,
+          });
+
+          socket.emit("private message sent", {
+            from,
+            to,
+            text,
+          });
+        } else {
+          socket.emit("chat error", { message: `User ${to} not found.` });
+        }
+      }
     });
-  } else {
-    const targetSocketId = connectedUsers.get(to);
-
-    if (targetSocketId) {
-      io.to(targetSocketId).emit("private message", {
-        from,
-        to,
-        text,
-      });
-
-      socket.emit("private message sent", {
-        from,
-        to,
-        text,
-      });
-    } else {
-      socket.emit("chat error", { message: `User ${to} not found.` });
-    }
-  }
-});
 
     // Typing indicators
     socket.on("typing", ({ to }) => {

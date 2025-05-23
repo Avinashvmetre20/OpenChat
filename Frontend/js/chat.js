@@ -1,5 +1,7 @@
-const socket = io();
+const socket = io(); 
+// Initialize Socket.IO client to connect with the server
 
+// DOM elements
 const userList = document.getElementById("userList");
 const messages = document.getElementById("messages");
 const form = document.getElementById("form");
@@ -11,19 +13,23 @@ const typingIndicator = document.getElementById("typingIndicator");
 const toggleBtn = document.querySelector(".toggle-sidebar-btn");
 const sidebar = document.querySelector(".sidebar");
 
-let currentUser = "";
-let selectedUser = "public";
-const chatHistory = {};
-const unreadMessages = {};
-let typingTimeout;
+// App state
+let currentUser = ""; // Logged-in user's name
+let selectedUser = "public"; // Currently selected chat target
+const chatHistory = {}; // Stores chat history per user
+const unreadMessages = {}; // Stores count of unread messages
+let typingTimeout; // Timeout to clear typing indicator
 
+// Enable or disable the input form
 function setChatEnabled(enabled) {
     input.disabled = !enabled;
     form.querySelector("button").disabled = !enabled;
 }
 setChatEnabled(false);
 
+// Run on page load
 window.addEventListener("DOMContentLoaded", async () => {
+    // Ask for notification permission
     if (Notification.permission !== "granted") {
         await Notification.requestPermission();
     }
@@ -35,9 +41,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
+    // Fetch current user info using token
     try {
         const res = await fetch("/api/message/my", {
-        // const res = await fetch("http://localhost:8080/api/message/my", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -52,11 +58,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             currentUserDisplay.innerHTML = `<strong>You:</strong> ${currentUser}`;
             setChatEnabled(true);
             input.focus();
-            if (currentUser) {
-                socket.emit("set username", currentUser);
-                document.getElementById("currentUser").textContent = `${currentUser}`;
-            }
-            fetchAllUsers(token);
+            socket.emit("set username", currentUser); // Inform server about the user
+            document.getElementById("currentUser").textContent = `${currentUser}`;
+            fetchAllUsers(token); // Load other users
         } else {
             throw new Error("Invalid user data");
         }
@@ -68,10 +72,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
+// Fetch all users for the user list sidebar
 async function fetchAllUsers(token) {
     try {
         const res = await fetch("/api/auth/users", {
-        // const res = await fetch("http://localhost:8080/api/auth/users", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -87,6 +91,7 @@ async function fetchAllUsers(token) {
     }
 }
 
+// Render all users in the sidebar
 function renderUserList(users) {
     userList.innerHTML = "";
 
@@ -97,9 +102,11 @@ function renderUserList(users) {
         userDiv.innerHTML = `
             <span class="status-dot" style="width:8px;height:8px;border-radius:50%;margin-right:5px;background-color:red;display:inline-block;"></span>
             ${user}
+            <span class="typing-status" style="font-size: 0.8em; color: green; margin-left: 5px;"></span>
             <span class="badge" style="display:none;"></span>
         `;
 
+        // On user click, switch chat
         userDiv.addEventListener("click", () => {
             selectedUser = user;
             chatWith.textContent = user;
@@ -114,6 +121,7 @@ function renderUserList(users) {
     });
 }
 
+// Update online/offline dot status for each user
 function updateOnlineStatus(onlineUsers) {
     document.querySelectorAll(".user").forEach(el => {
         const user = el.getAttribute("data-user");
@@ -123,9 +131,9 @@ function updateOnlineStatus(onlineUsers) {
         }
     });
 }
-
 socket.on("online users", updateOnlineStatus);
 
+// Switch to public chat
 publicTab.addEventListener("click", () => {
     selectedUser = "public";
     chatWith.textContent = "Public Chat";
@@ -135,6 +143,7 @@ publicTab.addEventListener("click", () => {
     typingIndicator.textContent = "";
 });
 
+// Highlight selected chat user
 function setActiveUser(user) {
     document.querySelectorAll(".user").forEach(el => el.classList.remove("active"));
     if (user === "public") {
@@ -145,6 +154,7 @@ function setActiveUser(user) {
     }
 }
 
+// Load chat history into the message area
 function loadMessages(user) {
     messages.innerHTML = "";
     (chatHistory[user] || []).forEach(({ text, type, from }) => {
@@ -152,23 +162,16 @@ function loadMessages(user) {
     });
 }
 
+// Add message to UI
 function addMessage(text, type, from) {
     const messageElement = document.createElement("div");
     messageElement.className = `message ${type}`;
-
-    if (from === currentUser) {
-        // If message is from yourself, show only the text
-        messageElement.textContent = text;
-    } else {
-        // If message is from others, show username and text
-        messageElement.innerHTML = `<strong>${from}:</strong> ${text}`;
-    }
-
+    messageElement.innerHTML = from === currentUser ? text : `<strong>${from}:</strong> ${text}`;
     messages.appendChild(messageElement);
     messages.scrollTop = messages.scrollHeight;
 }
 
-
+// Show unread badge count for user
 function showBadge(user) {
     const el = document.querySelector(`[data-user="${user}"]`);
     if (el) {
@@ -181,6 +184,7 @@ function showBadge(user) {
     }
 }
 
+// Hide unread badge count
 function hideBadge(user) {
     unreadMessages[user] = 0;
     const el = document.querySelector(`[data-user="${user}"]`);
@@ -190,6 +194,7 @@ function hideBadge(user) {
     }
 }
 
+// Handle sending message
 form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!currentUser || !selectedUser) return;
@@ -198,13 +203,12 @@ form.addEventListener("submit", (e) => {
     if (msg) {
         const payload = { to: selectedUser, text: msg };
         socket.emit("chat message", payload);
-        // chatHistory[selectedUser] = chatHistory[selectedUser] || [];
-        // chatHistory[selectedUser].push({ text: msg, type: "sent" });
         input.value = "";
         typingIndicator.textContent = "";
     }
 });
 
+// Emit typing event when user types
 input.addEventListener("input", () => {
     if (!currentUser) return;
     socket.emit("typing", { to: selectedUser });
@@ -214,115 +218,116 @@ input.addEventListener("input", () => {
     }, 1000);
 });
 
-// Receive incoming chat message (public or private)
+// Handle receiving public message
 socket.on("chat message", ({ from, to, text }) => {
-  const isFromMe = from === currentUser;
-  const chatKey = "public";
+    const isFromMe = from === currentUser;
+    const chatKey = "public";
 
-  chatHistory[chatKey] = chatHistory[chatKey] || [];
-  chatHistory[chatKey].push({ text, from, to, type: isFromMe ? "sent" : "received" });
+    chatHistory[chatKey] = chatHistory[chatKey] || [];
+    chatHistory[chatKey].push({ text, from, to, type: isFromMe ? "sent" : "received" });
 
-  const isCurrentChat = selectedUser === "public";
-  if (isCurrentChat) {
-    addMessage(text, isFromMe ? "sent" : "received", from);
-  } else {
-    showBadge(chatKey);
-  }
+    const isCurrentChat = selectedUser === "public";
+    if (isCurrentChat) {
+        addMessage(text, isFromMe ? "sent" : "received", from);
+    } else {
+        showBadge(chatKey);
+    }
 });
 
-// Confirmation message back to sender (private)
+// Handle receiving private message
 socket.on("private message", ({ from, to, text }) => {
-  const chatKey = from;
-  const isCurrentChat = selectedUser === from;
+    const chatKey = from;
+    const isCurrentChat = selectedUser === from;
 
-  chatHistory[chatKey] = chatHistory[chatKey] || [];
-  chatHistory[chatKey].push({ text, from, to, type: "received" });
+    chatHistory[chatKey] = chatHistory[chatKey] || [];
+    chatHistory[chatKey].push({ text, from, to, type: "received" });
 
-  if (isCurrentChat) {
-    addMessage(text, "received", from);
-  } else {
-    showBadge(chatKey);
-  }
+    if (isCurrentChat) {
+        addMessage(text, "received", from);
+    } else {
+        showBadge(chatKey);
+    }
 });
 
+// Confirmation message back to sender after sending private message
 socket.on("private message sent", ({ from, to, text }) => {
-  const chatKey = to;
-  const isCurrentChat = selectedUser === to;
+    const chatKey = to;
+    const isCurrentChat = selectedUser === to;
 
-  chatHistory[chatKey] = chatHistory[chatKey] || [];
-  chatHistory[chatKey].push({ text, from, to, type: "sent" });
+    chatHistory[chatKey] = chatHistory[chatKey] || [];
+    chatHistory[chatKey].push({ text, from, to, type: "sent" });
 
-  if (isCurrentChat) {
-    addMessage(text, "sent", from);
-  } else {
-    showBadge(chatKey);
-  }
+    if (isCurrentChat) {
+        addMessage(text, "sent", from);
+    } else {
+        showBadge(chatKey);
+    }
 });
 
-// Show typing indicator
+// Show "typing..." indicator
 socket.on("typing", ({ from, to }) => {
-    if (selectedUser === from || (to === "public" && selectedUser === "public")) {
-        typingIndicator.textContent = `${from} is typing...`;
+    if (from !== currentUser) {
+        const userEl = document.querySelector(`[data-user="${from}"]`);
+        if (userEl) {
+            const typingEl = userEl.querySelector(".typing-status");
+            if (typingEl) {
+                typingEl.textContent = "typing...";
+                clearTimeout(typingEl._typingTimeout);
+                typingEl._typingTimeout = setTimeout(() => {
+                    typingEl.textContent = "";
+                }, 2000);
+            }
+        }
     }
 });
 
-// Hide typing indicator
+// Clear "typing..." indicator
 socket.on("stop typing", ({ from, to }) => {
-    if (selectedUser === from || (to === "public" && selectedUser === "public")) {
-        typingIndicator.textContent = "";
+    if (from !== currentUser) {
+        const userEl = document.querySelector(`[data-user="${from}"]`);
+        if (userEl) {
+            const typingEl = userEl.querySelector(".typing-status");
+            if (typingEl) {
+                clearTimeout(typingEl._typingTimeout);
+                typingEl.textContent = "";
+            }
+        }
     }
 });
 
+// When client reconnects to server
 socket.on("connect", () => {
     if (currentUser) socket.emit("set username", currentUser);
 });
 
-// // Sidebar toggle
-// toggleBtn.addEventListener("click", () => {
-//     sidebar.classList.toggle("active");
-// });
-
-function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      sidebar.classList.toggle("active"); // use 'active' for consistency
-    }
-
-// Sidebar toggle
-sidebar.addEventListener("click", () => {
-    selectedUser = user;
-    chatWith.textContent = user;
-    loadMessages(user);
-    setActiveUser(user);
-    hideBadge(user);
-    typingIndicator.textContent = "";
-    input.focus();
-
-    // 👇 Hide the sidebar after selecting a user
-    const sidebar = document.getElementById("sidebar");
-    sidebar.classList.remove("active");
-
-    // 👇 Optionally change the toggle button icon state
-    toggleBtn.classList.remove("open");
+// Sidebar toggle functionality
+toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
 });
 
+// Sidebar toggle (alternate method)
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("active");
+}
 
-
-// Logout
+// Logout handler
 function logout() {
     localStorage.removeItem("token");
     window.location.href = "/auth.html";
 }
 
+// User dropdown toggle
 function toggleDropdown() {
     const dropdown = document.getElementById("dropdownMenu");
     dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-  }
+}
 
-  // Optional: Hide dropdown if clicked outside
-  window.addEventListener('click', function (e) {
+// Close dropdown if click is outside
+window.addEventListener('click', function (e) {
     const dropdown = document.getElementById("dropdownMenu");
     const userDropdown = document.querySelector(".user-dropdown");
     if (!userDropdown.contains(e.target)) {
-      dropdown.style.display = "none";
+        dropdown.style.display = "none";
     }
-  });
+});

@@ -33,5 +33,20 @@
   </div>
 
   <script src="./js/auth.js"></script>
+  <script>
+    function toggleDropdown() {
+    const dropdown = document.getElementById("dropdownMenu");
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+}
+
+// Optional: Hide dropdown if clicked outside
+window.addEventListener('click', function (e) {
+    const dropdown = document.getElementById("dropdownMenu");
+    const userDropdown = document.querySelector(".user-dropdown");
+    if (!userDropdown.contains(e.target)) {
+        dropdown.style.display = "none";
+    }
+});
+  </script>
 </body>
 </html>
