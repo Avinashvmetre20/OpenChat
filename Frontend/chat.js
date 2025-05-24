@@ -43,7 +43,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch current user info using token
     try {
-        const res = await fetch("https://openchat-ucsj.onrender.com/api/message/my", {
+        const res = await fetch("/api/message/my", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -75,7 +75,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 // Fetch all users for the user list sidebar
 async function fetchAllUsers(token) {
     try {
-        const res = await fetch("https://openchat-ucsj.onrender.com/api/auth/users", {
+        const res = await fetch("/api/auth/users", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
