@@ -37,13 +37,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("token");
     if (!token) {
         alert("Please login first.");
-        window.location.href = "/auth.html";
+        window.location.href = "/index.html";
         return;
     }
 
     // Fetch current user info using token
     try {
-        const res = await fetch("/api/message/my", {
+        const res = await fetch("https://openchat-ucsj.onrender.com/api/message/my", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -68,14 +68,14 @@ window.addEventListener("DOMContentLoaded", async () => {
         console.error("Auth error:", err);
         alert("Session expired. Please login again.");
         localStorage.removeItem("token");
-        window.location.href = "/auth.html";
+        window.location.href = "/index.html";
     }
 });
 
 // Fetch all users for the user list sidebar
 async function fetchAllUsers(token) {
     try {
-        const res = await fetch("/api/auth/users", {
+        const res = await fetch("https://openchat-ucsj.onrender.com/api/auth/users", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -405,7 +405,7 @@ function toggleSidebar() {
 // Logout handler
 function logout() {
     localStorage.removeItem("token");
-    window.location.href = "/auth.html";
+    window.location.href = "/index.html";
 }
 
 // User dropdown toggle
