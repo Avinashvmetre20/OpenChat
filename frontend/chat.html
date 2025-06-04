@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Chat</title>
+  <link rel="stylesheet" href="chat.css" />
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar (User list & public chat) -->
+    <div class="sidebar" id="sidebar">
+      <h3>Chats</h3>
+      <div id="publicChat" class="user active" data-user="public">
+        🌐 Public Chat
+        <span class="badge" style="display: none;"></span>
+      </div>
+      <div id="userList"></div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="header-left">
+          <button class="toggle-sidebar-btn" aria-label="Toggle sidebar" onclick="toggleSidebar()">☰</button>
+          <span id="chatWith">Public Chat</span>
+        </div>
+
+        <div class="header-center">
+          <div id="typingIndicator" class="typing-indicator"></div>
+        </div>
+
+        <div class="header-right">
+          <div class="user-dropdown" onclick="toggleDropdown()">
+            <span id="currentUser" class="current-user-label">Username</span>
+            <div id="dropdownMenu" class="dropdown-menu">
+              <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="messages" class="chat-body"></div>
+      <form id="form" class="chat-footer">
+        <input type="text" id="input" autocomplete="on" placeholder="Type a message..." disabled />
+        <button type="submit" class="send-btn" id="sendBtn" disabled>
+          <span class="send-icon">📩</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Modular JavaScript Files -->
+<script src="chat.js"></script>
+
+</body>
+
+</html>
