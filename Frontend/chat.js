@@ -116,7 +116,7 @@ function renderUserList(users) {
             typingIndicator.textContent = "";
             input.focus();
 
-            // 🔔 Emit message read to sender
+            // Emit message read to sender
             const lastMessages = chatHistory[user] || [];
             const last = lastMessages.length > 0 ? lastMessages[lastMessages.length - 1] : null;
             if (last && last.timestamp) {
