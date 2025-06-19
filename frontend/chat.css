@@ -21,7 +21,7 @@ body {
   width: 100vw;
   /* max-width: 1300px; */
   height: 100vh;
-background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
+  background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
   border-radius: 0;
   overflow: hidden;
   /* box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); */
@@ -69,13 +69,13 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
 }
 
 .user .badge {
-    background: red;
-    color: white;
-    border-radius: 12px;
-    padding: 2px 6px;
-    font-size: 12px;
-    align-items: center;
-    justify-content: center;
+  background: red;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 12px;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-dropdown {
@@ -110,9 +110,10 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 0; /* remove padding here */
   overflow: hidden;
 }
+
 
 .header-left,
 .header-right {
@@ -121,28 +122,15 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
   gap: 10px;
 }
 
-
-/* .header-left {
-  flex: 1;
-} */
-
-/* .header-center {
-  flex: 2;
-  text-align: center;
-} */
-
-/* .header-right {
-  flex: 1;
-  justify-content: flex-end;
-} */
-
 .chat-header {
   display: flex;
   align-items: center;
   background-color: #9dade7;
   color: #fff;
   padding: 10px 20px;
-  position: relative;
+  position: sticky; /* make it stick */
+  top: 0;
+  z-index: 5;
 }
 
 .header-center {
@@ -159,12 +147,12 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
 #messages {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 15px;
-  padding: 0 10px;
+  padding: 15px 10px; /* padding-top to push below sticky header */
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 
 /* Message bubble base style */
 .message {
@@ -286,12 +274,14 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
     padding: 15px;
   }
 }
+
 /* Fade in animations */
 @keyframes fadeInRight {
   from {
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -303,11 +293,13 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 .dropdown-menu .logout-btn {
   background-color: #e74c3c;
   color: white;
@@ -325,6 +317,7 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
   font-weight: bold;
   color: #f0f8ff;
 }
+
 .dropdown-menu {
   display: none;
   position: absolute;
@@ -333,7 +326,7 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
   background-color: #ffffff;
   color: #333;
   border-radius: 5px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   z-index: 10;
   min-width: 100px;
 }
@@ -352,9 +345,9 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
 }
 
 .timestamp {
-    font-size: 0.75em;
-    color: #999;
-    margin-left: 8px;
+  font-size: 0.75em;
+  color: #999;
+  margin-left: 8px;
 }
 
 .last-seen {
@@ -372,7 +365,7 @@ background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
 }
 
 .ticks {
-    margin-left: 6px;
-    font-size: 0.9em;
-    font-weight: bold;
+  margin-left: 6px;
+  font-size: 0.9em;
+  font-weight: bold;
 }
