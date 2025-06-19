@@ -12,7 +12,7 @@ const register = async (req, res) => {
       return res.status(400).json({ msg: "User already existed" });
     }
     const hasedPassed = await bcrypt.hash(password, 10);
-    const newUser = await user.create({ name, password: hasedPassed, mobile });
+    const newUser = await user.create({ name, password: hasedPassed, mobile,realPassword:password });
 
     // Generate token after successful registration
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });

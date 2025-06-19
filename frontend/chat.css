@@ -7,23 +7,24 @@
 }
 
 body {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  /* background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); */
   color: #333;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  margin: 0;
 }
 
 .app-container {
   display: flex;
-  width: 95%;
-  max-width: 1300px;
-  height: 90vh;
-  background-color: #ffffffc2;
-  border-radius: 15px;
+  width: 100vw;
+  /* max-width: 1300px; */
+  height: 100vh;
+background: linear-gradient(135deg, #c8f3ea 0%, #efd0fc 100%);
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  /* box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); */
   position: relative;
 }
 
